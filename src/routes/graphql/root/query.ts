@@ -51,7 +51,7 @@ export const QueryType = new GraphQLObjectType({
       resolve: async (_, { id }, context: PrismaClient) =>
         await context.memberType.findUnique({
           where: {
-            id: id as UUID,
+            id: id as string,
           },
         }),
     },
