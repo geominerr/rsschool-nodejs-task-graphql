@@ -6,7 +6,7 @@ import {
   GraphQLObjectType,
 } from 'graphql';
 import { ProfileListType } from './profile.js';
-import { PrismaClient } from '@prisma/client';
+import { IContext } from '../loaders/loaders.model.js';
 
 export const MemberTypeId: GraphQLEnumType = new GraphQLEnumType({
   name: 'MemberTypeId',
@@ -25,8 +25,8 @@ export const MemberType: GraphQLObjectType = new GraphQLObjectType({
 
     profiles: {
       type: ProfileListType,
-      resolve: async ({ id }, _, context: PrismaClient) =>
-        await context.profile.findMany({ where: { memberTypeId: id as string } }),
+      resolve: async ({ id }, _, { prisma }: IContext) =>
+        await prisma.profile.findMany({ where: { memberTypeId: id as string } }),
     },
   }),
 });

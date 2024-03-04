@@ -1,10 +1,9 @@
 import { GraphQLFloat, GraphQLList, GraphQLObjectType, GraphQLString } from 'graphql';
 import { UUIDType } from './uuid.js';
 import { ProfileType } from './profile.js';
-import { PrismaClient } from '@prisma/client';
 import { PostListType } from './post.js';
-
 import { UUID } from 'crypto';
+import { IContext } from '../loaders/loaders.model.js';
 
 export const UserType: GraphQLObjectType = new GraphQLObjectType({
   name: 'User',
@@ -15,40 +14,26 @@ export const UserType: GraphQLObjectType = new GraphQLObjectType({
 
     profile: {
       type: ProfileType,
-      resolve: async ({ id }, _, context: PrismaClient) =>
-        await context.profile.findUnique({ where: { userId: id as UUID } }),
+      resolve: async ({ id }, _, { loaders }: IContext) =>
+        await loaders.profiles.load(id as UUID),
     },
 
     posts: {
       type: PostListType,
-      resolve: async ({ id }, __, context: PrismaClient) =>
-        await context.post.findMany({ where: { authorId: id as UUID } }),
+      resolve: async ({ id }, __, { loaders }: IContext) =>
+        await loaders.posts.load(id as UUID),
     },
 
     userSubscribedTo: {
       type: UserListType,
-      resolve: async ({ id }, __, context: PrismaClient) =>
-        (
-          await context.subscribersOnAuthors.findMany({
-            where: {
-              subscriberId: id as UUID,
-            },
-            select: { author: true },
-          })
-        ).map((res) => res.author),
+      resolve: async ({ id }, __, { loaders }: IContext) =>
+        await loaders.userSubscribedTo.load(id as UUID),
     },
 
     subscribedToUser: {
       type: UserListType,
-      resolve: async ({ id }, __, context: PrismaClient) =>
-        (
-          await context.subscribersOnAuthors.findMany({
-            where: {
-              authorId: id as UUID,
-            },
-            select: { subscriber: true },
-          })
-        ).map((res) => res.subscriber),
+      resolve: async ({ id }, __, { loaders }: IContext) =>
+        await loaders.subscribers.load(id as UUID),
     },
   }),
 });
